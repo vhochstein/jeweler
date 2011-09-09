@@ -19,18 +19,22 @@ class Jeweler
           raise "Unclean staging area! Be sure to commit or .gitignore everything first. See `git status` above."
         end
 
-        repo.checkout('master')
+        repo.checkout(current_branch)
 
         regenerate_gemspec!
         commit_gemspec! if gemspec_changed?
 
-        output.puts "Pushing master to origin"
+        output.puts "Pushing #{current_branch} to origin"
         repo.push
       end
 
       def clean_staging_area?
         # surprisingly simpler than ruby-git
         `git ls-files --deleted --modified --others --exclude-standard` == ""
+      end
+
+      def current_branch
+        `git name-rev --name-only HEAD`
       end
 
       def commit_gemspec!

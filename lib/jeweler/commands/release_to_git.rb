@@ -17,7 +17,7 @@ class Jeweler
           raise "Unclean staging area! Be sure to commit or .gitignore everything first. See `git status` above."
         end
 
-        repo.checkout('master')
+        repo.checkout(current_branch)
         repo.push
         
         if release_not_tagged?
@@ -31,6 +31,10 @@ class Jeweler
 
       def clean_staging_area?
         `git ls-files --deleted --modified --others --exclude-standard` == ""
+      end
+      
+      def current_branch
+        `git name-rev --name-only HEAD`
       end
 
       def release_tag
