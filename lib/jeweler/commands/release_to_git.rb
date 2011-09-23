@@ -17,8 +17,12 @@ class Jeweler
           raise "Unclean staging area! Be sure to commit or .gitignore everything first. See `git status` above."
         end
 
-        repo.checkout(current_branch)
-        repo.push
+        branch = repo.branches.select do |obj|
+          current_branch == obj.full.to_s
+        end.first
+
+        branch.checkout
+        repo.push(remote = 'origin', branch = current_branch, tags = false)
         
         if release_not_tagged?
           output.puts "Tagging #{release_tag}"
@@ -34,7 +38,9 @@ class Jeweler
       end
       
       def current_branch
-        `git name-rev --name-only HEAD`
+        branch = `git branch`.split("\n").select {|name| name[0,2] == '* '}.first
+        branch = branch[2, branch.length]
+        branch
       end
 
       def release_tag

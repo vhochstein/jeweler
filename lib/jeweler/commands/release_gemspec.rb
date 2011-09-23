@@ -18,14 +18,17 @@ class Jeweler
           system "git status"
           raise "Unclean staging area! Be sure to commit or .gitignore everything first. See `git status` above."
         end
+        branch = repo.branches.select do |obj|
+          current_branch == obj.full.to_s
+        end.first
 
-        repo.checkout(current_branch)
+        branch.checkout
 
         regenerate_gemspec!
         commit_gemspec! if gemspec_changed?
 
         output.puts "Pushing #{current_branch} to origin"
-        repo.push
+        repo.push(remote = 'origin', branch = current_branch, tags = false)
       end
 
       def clean_staging_area?
@@ -34,7 +37,9 @@ class Jeweler
       end
 
       def current_branch
-        `git name-rev --name-only HEAD`
+        branch = `git branch`.split("\n").select {|name| name[0,2] == '* '}.first
+        branch = branch[2, branch.length]
+        branch
       end
 
       def commit_gemspec!
